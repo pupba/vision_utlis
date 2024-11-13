@@ -8,14 +8,19 @@ Image.MAX_IMAGE_PIXELS = None
 
 scale_factor = 0.4
 
+def chkpoint(points:list)->bool:
+    if 0.0 in points[3:5]:
+        return True 
+    return False
+
 def start(prompt,root,name,l,c,ut):
-    gr.Warning(f"{name} start")
+    gr.Warning(f"{name} start",duration=1.5)
     image = cv2.imread(l+name)
     c = cv2.imread(c+name)
     ut = cv2.imread(ut+name)
 
     # x,y
-    points = [(coord[0],coord[1]) for coord in prompt['points']]
+    points = [(coord[0],coord[1]) for coord in prompt['points'] if chkpoint(coord)]
     for idx in range(len(points)):
         if idx == 0:
             start = 0
@@ -23,6 +28,9 @@ def start(prompt,root,name,l,c,ut):
         else:
             start = points[idx-1][1]
             end = points[idx][1]
+
+        if idx%2 == 0:
+            continue
 
         start_y = int(start / scale_factor)
         end_y = int(end / scale_factor)
@@ -32,7 +40,7 @@ def start(prompt,root,name,l,c,ut):
         os.makedirs(root+"선화/",exist_ok=True)
         os.makedirs(root+"채색/",exist_ok=True)
 
-        # cut_img = np.array(prompt['image'])[start_y:end_y,:]
+        cut_img = np.array(prompt['image'])[start_y:end_y,:]
         cut_img = image[start_y:end_y,:]
         cv2.imwrite(f"{root}선화/{name}-{idx}.jpg",cut_img)
         cut_c = c[start_y:end_y,:]
@@ -40,7 +48,7 @@ def start(prompt,root,name,l,c,ut):
         cut_ut = ut[start_y:end_y,:]
         cv2.imwrite(f"{root}밑색/{name}-{idx}.jpg",cut_ut)
 
-    gr.Warning(f"{name} End")
+    gr.Warning(f"{name} End",duration=1.5)
 
 def resize_image(image):
     # 이미지를 축소 비율에 맞춰 리사이즈
@@ -55,9 +63,9 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             l = gr.Textbox(label="선화 경로",value="line/")
-            ut = gr.Textbox(label="밑색 경로",value="ut/")
-            c = gr.Textbox(label="채색 경로",value="color/")
-            root = gr.Textbox(label="저장 위치",value="data/")
+            ut = gr.Textbox(label="밑색 경로",value="webtoon/s2/ut/")
+            c = gr.Textbox(label="채색 경로",value="webtoon/s2/color/")
+            root = gr.Textbox(label="저장 위치",value="path")
             name = gr.Textbox(label="파일 이름")
             
         with gr.Column():
